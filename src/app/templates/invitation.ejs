@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title><%= appName || "LegalEase" %> - Advocate Invitation</title>
+  <style>
+    body, p, h1, h2, h3, table, td {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f8fafc;
+      padding: 40px 15px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      padding: 36px 36px 32px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+      color: #fbbf24;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: #93c5fd;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .content {
+      padding: 36px;
+    }
+    .greeting {
+      font-size: 16px;
+      color: #334155;
+      margin-bottom: 16px;
+    }
+    .paragraph {
+      font-size: 15px;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+    .credentials-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin: 24px 0;
+    }
+    .cred-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e3a8a;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+    .cred-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .cred-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .cred-value {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .password-highlight {
+      font-family: "Courier New", Courier, monospace;
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #0f172a;
+      display: inline-block;
+    }
+    .action-button-container {
+      text-align: center;
+      margin: 32px 0 24px;
+    }
+    .action-button {
+      display: inline-block;
+      background: #2563eb;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+    .steps-list {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 18px 24px;
+      margin-top: 24px;
+    }
+    .steps-list h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+    .steps-list ol {
+      padding-left: 20px;
+      margin: 0;
+      color: #475569;
+      font-size: 13.5px;
+    }
+    .steps-list li {
+      margin-bottom: 6px;
+    }
+    .warning-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 14px 16px;
+      border-radius: 6px;
+      margin-top: 24px;
+      font-size: 13px;
+      color: #92400e;
+    }
+    .footer {
+      background: #f8fafc;
+      padding: 24px 36px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .footer a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="badge">Official Practitioner Invitation</div>
+        <h1><%= appName || "LegalEase" %></h1>
+        <p>Legal Practice & Consultation Platform</p>
+      </div>
+      <div class="content">
+        <p class="greeting">Dear <strong>Adv. <%= lawyerName || name || "Colleague" %></strong>,</p>
+        <p class="paragraph">
+          You have been formally invited by the platform administration to join 
+          <strong><%= appName || "LegalEase" %></strong> as a verified legal consultant.
+        </p>
+        <p class="paragraph">
+          Your practitioner account has been prepared with the temporary credentials below. 
+          Upon initial access, you will be directed to establish your secure personal password.
+        </p>
+
+        <div class="credentials-card">
+          <div class="cred-title">Your Temporary Access Credentials</div>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: #64748b; font-size: 14px; width: 140px;">Portal Login:</td>
+              <td style="padding: 6px 0; font-weight: 600; color: #0f172a; font-size: 14px;"><%= email %></td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: #64748b; font-size: 14px;">Temporary Password:</td>
+              <td style="padding: 6px 0;">
+                <span class="password-highlight"><%= temporaryPassword %></span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="action-button-container">
+          <a href="<%= loginUrl %>" class="action-button" target="_blank">
+            Log In & Set Password &rarr;
+          </a>
+        </div>
+
+        <div class="steps-list">
+          <h3>Next Steps for Account Activation</h3>
+          <ol>
+            <li>Sign in using your temporary password at the link above.</li>
+            <li>Create your new personal password on the prompt (PRD Rule BL-17).</li>
+            <li>Complete your chamber details, practice areas, and Bar Council verification credentials.</li>
+          </ol>
+        </div>
+
+        <div class="warning-box">
+          <strong>Security Advisory:</strong> This temporary password is for your eyes only. It will automatically expire after your initial login. Never disclose credentials to third parties.
+        </div>
+      </div>
+      <div class="footer">
+        <p>Sent with pride by the <%= appName || "LegalEase" %> Administration Team.</p>
+        <p>Need assistance? Contact our registrar desk at <a href="mailto:<%= supportEmail || 'support@legalease.com' %>"><%= supportEmail || "support@legalease.com" %></a>.</p>
+        <p style="margin-top: 8px;">&copy; <%= new Date().getFullYear() %> <%= appName || "LegalEase" %>. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

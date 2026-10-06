@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title><%= appName || "LegalEase" %> - Consultation Confirmed</title>
+  <style>
+    body, p, h1, h2, h3, table, td {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f8fafc;
+      padding: 40px 15px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+      padding: 36px 36px 30px;
+      text-align: center;
+    }
+    .badge-success {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 9999px;
+      color: #a7f3d0;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: #d1fae5;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .content {
+      padding: 36px;
+    }
+    .greeting {
+      font-size: 16px;
+      color: #334155;
+      margin-bottom: 16px;
+    }
+    .paragraph {
+      font-size: 15px;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .summary-header {
+      background: #f1f5f9;
+      padding: 12px 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .summary-table td {
+      padding: 12px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .summary-table tr:last-child td {
+      border-bottom: none;
+    }
+    .summary-label {
+      color: #64748b;
+      font-weight: 500;
+      width: 40%;
+    }
+    .summary-value {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .action-button-container {
+      text-align: center;
+      margin: 30px 0 24px;
+    }
+    .action-button {
+      display: inline-block;
+      background: #047857;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(4, 120, 87, 0.25);
+    }
+    .notes-box {
+      background: #f0fdf4;
+      border-left: 4px solid #10b981;
+      padding: 14px 16px;
+      border-radius: 6px;
+      margin-top: 24px;
+      font-size: 13.5px;
+      color: #065f46;
+    }
+    .checklist {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 18px 24px;
+      margin-top: 20px;
+      border: 1px solid #e2e8f0;
+    }
+    .checklist h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #334155;
+      margin-bottom: 10px;
+    }
+    .checklist ul {
+      padding-left: 20px;
+      margin: 0;
+      color: #475569;
+      font-size: 13px;
+    }
+    .checklist li {
+      margin-bottom: 6px;
+    }
+    .footer {
+      background: #f8fafc;
+      padding: 24px 36px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .footer a {
+      color: #047857;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="badge-success">&#10003; Payment & Booking Confirmed</div>
+        <h1><%= appName || "LegalEase" %></h1>
+        <p>Consultation Appointment Confirmation</p>
+      </div>
+      <div class="content">
+        <p class="greeting">Hello <strong><%= clientName || "Client" %></strong>,</p>
+        <p class="paragraph">
+          Your payment has been successfully verified, and your legal consultation appointment has been scheduled with <strong>Adv. <%= lawyerName %></strong>.
+        </p>
+
+        <div class="summary-card">
+          <div class="summary-header">Appointment Details</div>
+          <table class="summary-table">
+            <tr>
+              <td class="summary-label">Consultation ID:</td>
+              <td class="summary-value" style="font-family: monospace;"><%= consultationId %></td>
+            </tr>
+            <tr>
+              <td class="summary-label">Legal Consultant:</td>
+              <td class="summary-value">Adv. <%= lawyerName %></td>
+            </tr>
+            <tr>
+              <td class="summary-label">Scheduled Date:</td>
+              <td class="summary-value"><%= appointmentDate %></td>
+            </tr>
+            <tr>
+              <td class="summary-label">Time Slot:</td>
+              <td class="summary-value"><%= appointmentTime %></td>
+            </tr>
+            <tr>
+              <td class="summary-label">Session Type:</td>
+              <td class="summary-value"><%= consultationType || "Standard Video Consultation (30 mins)" %></td>
+            </tr>
+            <tr>
+              <td class="summary-label">Fee Paid:</td>
+              <td class="summary-value" style="color: #047857;"><%= amount %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="action-button-container">
+          <a href="<%= meetingLink || portalUrl %>" class="action-button" target="_blank">
+            Access Consultation Room &rarr;
+          </a>
+        </div>
+
+        <% if (instructions) { %>
+        <div class="notes-box">
+          <strong>Consultant Note:</strong> <%= instructions %>
+        </div>
+        <% } %>
+
+        <div class="checklist">
+          <h3>Preparation & Guidelines</h3>
+          <ul>
+            <li>Please join the session 5-10 minutes early to test your audio and video connection.</li>
+            <li>Upload any relevant case documents (PDFs) directly to your consultation portal ahead of time.</li>
+            <li>Consultations are private and encrypted for client-attorney confidentiality.</li>
+            <li>Need to reschedule or cancel? You can manage your appointment from your client dashboard.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <p>Thank you for choosing <%= appName || "LegalEase" %> Bangladesh.</p>
+        <p>Questions? Contact client support at <a href="mailto:<%= supportEmail || 'support@legalease.com' %>"><%= supportEmail || "support@legalease.com" %></a>.</p>
+        <p style="margin-top: 8px;">&copy; <%= new Date().getFullYear() %> <%= appName || "LegalEase" %>. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

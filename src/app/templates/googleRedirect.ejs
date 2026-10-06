@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= appName || "LegalEase" %> - Authentication Redirect</title>
+  <% if (!error && redirectUrl) { %>
+    <meta http-equiv="refresh" content="3;url=<%= redirectUrl %>">
+  <% } %>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      border-radius: 9999px;
+      color: #60a5fa;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+    .spinner-container {
+      margin: 20px 0 28px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: #3b82f6;
+      animation: spin 0.9s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .error-box {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      color: #fca5a5;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .manual-link {
+      display: inline-block;
+      color: #38bdf8;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .manual-link:hover {
+      text-decoration: underline;
+      color: #7dd3fc;
+    }
+    .button {
+      display: inline-block;
+      background: #2563eb;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-container">
+      <div class="badge"><%= appName || "LegalEase" %> Auth</div>
+    </div>
+
+    <% if (error) { %>
+      <h1 style="color: #f87171;">Authentication Failed</h1>
+      <div class="error-box">
+        <%= error %>
+      </div>
+      <p>We could not complete your authentication. Please return to the login page and try again.</p>
+      <a href="<%= redirectUrl || '/login' %>" class="button">Return to Login</a>
+    <% } else { %>
+      <h1>Signing You In</h1>
+      <p>Please wait while we establish your secure session and redirect you to the application...</p>
+      
+      <div class="spinner-container">
+        <div class="spinner"></div>
+      </div>
+
+      <a id="redirectFallback" href="<%= redirectUrl %>" class="manual-link">
+        Click here if you are not automatically redirected &rarr;
+      </a>
+    <% } %>
+  </div>
+
+  <script>
+    (function() {
+      const error = <%- JSON.stringify(error || null) %>;
+      const token = <%- JSON.stringify(token || null) %>;
+      const refreshToken = <%- JSON.stringify(refreshToken || null) %>;
+      const redirectUrl = <%- JSON.stringify(redirectUrl || "/") %>;
+      const user = <%- JSON.stringify(user || null) %>;
+
+      // 1. Popup window communication if opened via OAuth popup
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage(
+            {
+              type: error ? "GOOGLE_AUTH_ERROR" : "GOOGLE_AUTH_SUCCESS",
+              token,
+              refreshToken,
+              user,
+              error
+            },
+            "*"
+          );
+          // Optional short delay before closing popup
+          setTimeout(function() {
+            window.close();
+          }, 600);
+          return;
+        } catch (e) {
+          console.warn("Failed to message window opener:", e);
+        }
+      }
+
+      // 2. Direct browser navigation if not in a popup
+      if (!error && redirectUrl) {
+        setTimeout(function() {
+          window.location.replace(redirectUrl);
+        }, 800);
+      }
+    })();
+  </script>
+</body>
+</html>

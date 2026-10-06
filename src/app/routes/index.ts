@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import status from "http-status";
-import { sendResponse } from "../shared/sendResponse";
+import { sendResponse } from "../utils/sendResponse";
 
 const router = express.Router();
 

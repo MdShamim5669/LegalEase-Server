@@ -17,6 +17,15 @@ export const envSchema = z.object({
   REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
   SUPER_ADMIN_EMAIL: z.string().email().default("admin@example.com"),
   SUPER_ADMIN_PASSWORD: z.string().min(8).default("AdminSecurePassword123!"),
+  STRIPE_SECRET_KEY: z.string().default("sk_test_placeholder_key"),
+  STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder_secret"),
+  PAYMENT_CURRENCY: z.string().default("bdt"),
+  PAYMENT_GATEWAY_PROVIDER: z.enum(["STRIPE", "SSLCOMMERZ", "MOCK"]).default("STRIPE"),
+  EMAIL_SENDER_SMTP_HOST: z.string().default("smtp.example.com"),
+  EMAIL_SENDER_SMTP_PORT: z.coerce.number().default(587),
+  EMAIL_SENDER_SMTP_USER: z.string().default("your_smtp_user"),
+  EMAIL_SENDER_SMTP_PASS: z.string().default("your_smtp_password"),
+  EMAIL_SENDER_SMTP_FROM: z.string().default("LegalEase <no-reply@legalease.com>"),
 });
 
 export const validateEnv = (raw: Record<string, unknown>) => {

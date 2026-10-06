@@ -10,6 +10,53 @@ export const handleWebhook = catchAsync(async (req: Request, res: Response) => {
   res.status(status.OK).json(result);
 });
 
+export const sslCommerzSuccess = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.handleSSLCommerzSuccess(req.body);
+  if (result.redirectUrl) {
+    res.redirect(result.redirectUrl);
+    return;
+  }
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "SSLCommerz payment validated successfully",
+    data: result,
+  });
+});
+
+export const sslCommerzFail = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.handleSSLCommerzFail(req.body);
+  if (result.redirectUrl) {
+    res.redirect(result.redirectUrl);
+    return;
+  }
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: false,
+    message: "SSLCommerz payment failed",
+    data: result,
+  });
+});
+
+export const sslCommerzCancel = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.handleSSLCommerzCancel(req.body);
+  if (result.redirectUrl) {
+    res.redirect(result.redirectUrl);
+    return;
+  }
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: false,
+    message: "SSLCommerz payment cancelled by user",
+    data: result,
+  });
+});
+
+export const sslCommerzIpn = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.handleSSLCommerzIpn(req.body);
+  res.status(status.OK).json(result);
+});
+
 export const refundPayment = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.refundPayment(
     req.user!,
@@ -37,6 +84,10 @@ export const getAllPayments = catchAsync(async (req: Request, res: Response) => 
 
 export const PaymentController = {
   handleWebhook,
+  sslCommerzSuccess,
+  sslCommerzFail,
+  sslCommerzCancel,
+  sslCommerzIpn,
   refundPayment,
   getAllPayments,
 };

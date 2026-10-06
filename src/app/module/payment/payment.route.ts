@@ -8,9 +8,15 @@ import { Role } from "../../../generated/prisma/enums.js";
 const router = express.Router();
 
 /**
- * Payment processing and administrative refund routes (PRD Section 6).
+ * Payment processing and administrative refund routes (PRD Section 6 & Appendix A).
  */
 router.post("/webhook", PaymentController.handleWebhook);
+
+// SSLCommerz redirect and IPN callback routes
+router.post("/sslcommerz/success", PaymentController.sslCommerzSuccess);
+router.post("/sslcommerz/fail", PaymentController.sslCommerzFail);
+router.post("/sslcommerz/cancel", PaymentController.sslCommerzCancel);
+router.post("/sslcommerz/ipn", PaymentController.sslCommerzIpn);
 
 router.post(
   "/:id/refund",

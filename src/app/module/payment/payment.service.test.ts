@@ -1,8 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import status from "http-status";
-import { handleWebhook, refundPayment } from "./payment.service";
+import {
+  handleWebhook,
+  handleSSLCommerzSuccess,
+  handleSSLCommerzFail,
+  handleSSLCommerzCancel,
+  refundPayment,
+} from "./payment.service";
 import prisma from "../../lib/prisma";
 import { stripeGateway } from "../../gateway/StripeGateway";
+import { sslCommerzGateway } from "../../gateway/SSLCommerzGateway";
 import { sendEmail } from "../../utils/email";
 import { Role } from "../../../generated/prisma/enums.js";
 
@@ -25,6 +32,13 @@ vi.mock("../../lib/prisma", () => ({
 
 vi.mock("../../gateway/StripeGateway", () => ({
   stripeGateway: {
+    verifyWebhookSignature: vi.fn(),
+    refund: vi.fn(),
+  },
+}));
+
+vi.mock("../../gateway/SSLCommerzGateway", () => ({
+  sslCommerzGateway: {
     verifyWebhookSignature: vi.fn(),
     refund: vi.fn(),
   },
@@ -110,6 +124,72 @@ describe("Payment Service Business Rules", () => {
         statusCode: status.BAD_REQUEST,
         code: "MISSING_METADATA",
       });
+    });
+  });
+
+  describe("SSLCommerz Payment Integration & IPN Callbacks", () => {
+    it("handles SSLCommerz success callback, updates payment, and returns redirect url", async () => {
+      vi.mocked(sslCommerzGateway.verifyWebhookSignature).mockResolvedValueOnce({
+        eventId: "ssl_val_888",
+        eventType: "checkout.session.completed",
+        consultationId: "cons_ssl_888",
+        paymentIntentId: "tran_ssl_888",
+        rawEvent: {},
+      });
+
+      vi.mocked(prisma.payment.findFirst).mockResolvedValueOnce(null);
+
+      const mockPayment = { id: "pay_ssl_1", amount: 1500, status: "PAID" };
+      const mockConsultation = {
+        id: "cons_ssl_888",
+        videoCallingId: "room_ssl_888",
+        client: { name: "Client Nabila", email: "nabila@test.com" },
+        lawyer: { name: "Advocate Kamal" },
+      };
+
+      vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback: any) => {
+        const txMock = {
+          payment: { update: vi.fn().mockResolvedValue(mockPayment) },
+          consultation: { update: vi.fn().mockResolvedValue(mockConsultation) },
+        };
+        return await callback(txMock);
+      });
+
+      const result = await handleSSLCommerzSuccess({
+        val_id: "ssl_val_888",
+        tran_id: "tran_ssl_888",
+        value_a: "cons_ssl_888",
+        status: "VALID",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.consultationId).toBe("cons_ssl_888");
+      expect(result.redirectUrl).toContain("consultations/cons_ssl_888/success");
+      expect(sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: "nabila@test.com",
+          template: "bookingConfirmed",
+        })
+      );
+    });
+
+    it("returns failed redirect URL on SSLCommerz failure", async () => {
+      const res = await handleSSLCommerzFail({
+        value_a: "cons_fail_1",
+        error: "Bank transaction timeout",
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.redirectUrl).toContain("consultations/cons_fail_1/failed");
+    });
+
+    it("returns canceled redirect URL on SSLCommerz user cancellation", async () => {
+      const res = await handleSSLCommerzCancel({
+        value_a: "cons_cancel_1",
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.redirectUrl).toContain("consultations/cons_cancel_1/canceled");
     });
   });
 
@@ -204,6 +284,42 @@ describe("Payment Service Business Rules", () => {
         data: { isBooked: false },
       });
 
+      expect(res.status).toBe("REFUNDED");
+    });
+
+    it("routes refund to SSLCommerz gateway when payment provider is SSLCOMMERZ", async () => {
+      vi.mocked(prisma.payment.findUnique).mockResolvedValueOnce({
+        id: "pay_ssl_done",
+        status: "PAID",
+        transactionId: "tran_ssl_123",
+        amount: 1800,
+        consultationId: "cons_ssl_done",
+        paymentGatewayData: { provider: "SSLCOMMERZ" },
+        consultation: { lawyerId: "law_1", scheduleId: "sch_1" },
+      } as any);
+
+      vi.mocked(sslCommerzGateway.refund).mockResolvedValueOnce({
+        refundId: "re_ssl_999",
+        status: "succeeded",
+        amountRefunded: 1800,
+      });
+
+      vi.mocked(prisma.$transaction).mockImplementationOnce(async (callback: any) => {
+        const txMock = {
+          payment: { update: vi.fn().mockResolvedValue({ id: "pay_ssl_done", status: "REFUNDED" }) },
+          consultation: { update: vi.fn().mockResolvedValue({ id: "cons_ssl_done", status: "CANCELED" }) },
+          lawyerSchedule: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+        };
+        return await callback(txMock);
+      });
+
+      const res = await refundPayment(adminUser, "pay_ssl_done");
+
+      expect(sslCommerzGateway.refund).toHaveBeenCalledWith({
+        transactionId: "tran_ssl_123",
+        amount: 1800,
+        reason: "requested_by_customer",
+      });
       expect(res.status).toBe("REFUNDED");
     });
   });

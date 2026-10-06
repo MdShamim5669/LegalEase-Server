@@ -5,6 +5,7 @@ export interface IBookConsultationPayload {
   scheduleId: string;
   type?: ConsultationType;
   topic?: string;
+  gateway?: "STRIPE" | "SSLCOMMERZ";
 }
 
 export interface IUpdateConsultationStatusPayload {

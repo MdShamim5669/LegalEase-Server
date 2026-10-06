@@ -6,6 +6,7 @@ const bookConsultationSchema = z.object({
     scheduleId: z.string({ required_error: "Schedule ID is required" }),
     type: z.enum(["VIDEO", "CHAMBER", "PHONE"]).optional(),
     topic: z.string().max(255, "Topic must not exceed 255 characters").optional(),
+    gateway: z.enum(["STRIPE", "SSLCOMMERZ"]).optional(),
   }),
 });
 

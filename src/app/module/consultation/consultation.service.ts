@@ -3,7 +3,7 @@ import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
 import { IAuthUser } from "../../interfaces/auth.interface";
 import { Role, ConsultationType, ConsultationStatus } from "../../../generated/prisma/enums.js";
-import { stripeGateway } from "../../gateway/StripeGateway";
+import { getPaymentGateway } from "../../gateway/gateway.factory";
 
 export const LEGAL_DISCLAIMER =
   "This is preliminary consultation, not formal legal representation.";
@@ -22,6 +22,7 @@ export const bookConsultation = async (
     scheduleId: string;
     type?: ConsultationType;
     topic?: string;
+    gateway?: "STRIPE" | "SSLCOMMERZ";
   }
 ) => {
   const client = await prisma.client.findFirst({
@@ -30,6 +31,8 @@ export const bookConsultation = async (
   if (!client) {
     throw new AppError(status.NOT_FOUND, "Client profile not found", "CLIENT_NOT_FOUND");
   }
+
+  const activeGateway = getPaymentGateway(payload.gateway);
 
   // 1. Atomic booking transaction (Rule 2 & 9 in booking-and-payments.md)
   const txResult = await prisma.$transaction(async (tx) => {
@@ -74,18 +77,20 @@ export const bookConsultation = async (
         amount: lawyer.consultationFee,
         status: "UNPAID",
         transactionId,
+        paymentGatewayData: { provider: activeGateway.providerName },
       },
     });
 
     return { consultation, payment, lawyer };
   });
 
-  // 2. Stripe checkout session created OUTSIDE transaction (Rule BL-3)
-  const session = await stripeGateway.createCheckoutSession({
+  // 2. Checkout session created OUTSIDE transaction (Rule BL-3)
+  const session = await activeGateway.createCheckoutSession({
     consultationId: txResult.consultation.id,
     paymentId: txResult.payment.id,
     amount: txResult.payment.amount,
     clientEmail: clientUser.email,
+    clientName: client.name,
     lawyerName: txResult.lawyer.name,
   });
 
@@ -93,6 +98,7 @@ export const bookConsultation = async (
     consultation: txResult.consultation,
     sessionId: session.sessionId,
     paymentUrl: session.url,
+    gateway: activeGateway.providerName,
     disclaimer: LEGAL_DISCLAIMER,
   };
 };
@@ -167,7 +173,11 @@ export const bookPayLater = async (
   };
 };
 
-export const initiatePayment = async (consultationId: string, clientUser: IAuthUser) => {
+export const initiatePayment = async (
+  consultationId: string,
+  clientUser: IAuthUser,
+  gatewayChoice?: "STRIPE" | "SSLCOMMERZ"
+) => {
   const consultation = await prisma.consultation.findUnique({
     where: { id: consultationId },
     include: { payment: true, lawyer: true },
@@ -181,7 +191,8 @@ export const initiatePayment = async (consultationId: string, clientUser: IAuthU
     throw new AppError(status.BAD_REQUEST, "Consultation is already paid", "ALREADY_PAID");
   }
 
-  const session = await stripeGateway.createCheckoutSession({
+  const activeGateway = getPaymentGateway(gatewayChoice);
+  const session = await activeGateway.createCheckoutSession({
     consultationId: consultation.id,
     paymentId: consultation.payment.id,
     amount: consultation.payment.amount,
@@ -193,6 +204,7 @@ export const initiatePayment = async (consultationId: string, clientUser: IAuthU
     consultationId,
     paymentUrl: session.url,
     sessionId: session.sessionId,
+    gateway: activeGateway.providerName,
   };
 };
 

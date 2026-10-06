@@ -21,6 +21,11 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder_secret"),
   PAYMENT_CURRENCY: z.string().default("bdt"),
   PAYMENT_GATEWAY_PROVIDER: z.enum(["STRIPE", "SSLCOMMERZ", "MOCK"]).default("STRIPE"),
+  SSLCOMMERZ_STORE_ID: z.string().default("test_store_id"),
+  SSLCOMMERZ_STORE_PASS: z.string().default("test_store_pass"),
+  SSLCOMMERZ_IS_LIVE: z
+    .preprocess((val) => val === "true" || val === true, z.boolean())
+    .default(false),
   EMAIL_SENDER_SMTP_HOST: z.string().default("smtp.example.com"),
   EMAIL_SENDER_SMTP_PORT: z.coerce.number().default(587),
   EMAIL_SENDER_SMTP_USER: z.string().default("your_smtp_user"),

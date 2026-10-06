@@ -1,0 +1,40 @@
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Lawyer {
+  id               String    @id @default(uuid(7))
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id])
+  name             String
+  email            String    @unique
+  profilePhoto     String?
+  contactNumber    String
+  gender           Gender
+  barCouncilNo     String    @unique
+  experience       Int       @default(0)
+  consultationFee  Int // integer BDT taka
+  chamberAddress   String?
+  languages        String[]
+  bio              String?
+  isVerified       Boolean   @default(false)
+  verifiedAt       DateTime?
+  verificationNote String?
+  averageRating    Float     @default(0)
+  reviewCount      Int       @default(0)
+  isDeleted        Boolean   @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  practiceAreas LawyerPracticeArea[]
+  schedules     LawyerSchedule[]
+  consultations Consultation[]
+  reviews       Review[]
+
+  @@index([isDeleted, isVerified])
+  @@index([averageRating])
+  @@index([consultationFee])
+}

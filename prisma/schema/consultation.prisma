@@ -1,0 +1,42 @@
+enum ConsultationType {
+  VIDEO
+  CHAMBER
+  PHONE
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  INPROGRESS
+  COMPLETED
+  CANCELED
+}
+
+model Consultation {
+  id             String             @id @default(uuid(7))
+  clientId       String
+  lawyerId       String
+  scheduleId     String
+  type           ConsultationType   @default(VIDEO)
+  status         ConsultationStatus @default(SCHEDULED)
+  paymentStatus  PaymentStatus      @default(UNPAID)
+  videoCallingId String             @unique
+  topic          String?
+  canceledAt     DateTime?
+  canceledBy     Role?
+  cancelReason   String?
+  completedAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  client         Client         @relation(fields: [clientId], references: [id])
+  lawyer         Lawyer         @relation(fields: [lawyerId], references: [id])
+  lawyerSchedule LawyerSchedule @relation(fields: [lawyerId, scheduleId], references: [lawyerId, scheduleId])
+  payment        Payment?
+  advice         LegalAdvice?
+  review         Review?
+  documents      CaseDocument[]
+
+  @@index([clientId, status])
+  @@index([lawyerId, status])
+  @@index([status, paymentStatus, createdAt])
+}

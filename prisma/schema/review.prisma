@@ -1,0 +1,16 @@
+model Review {
+  id             String       @id @default(uuid(7))
+  consultationId String       @unique
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  clientId       String
+  lawyerId       String
+  client         Client       @relation(fields: [clientId], references: [id])
+  lawyer         Lawyer       @relation(fields: [lawyerId], references: [id])
+  rating         Int // 1..5, also DB CHECK
+  comment        String?
+  isHidden       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([lawyerId, isHidden, createdAt])
+  @@index([clientId])
+}

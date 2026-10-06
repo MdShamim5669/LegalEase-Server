@@ -1,0 +1,20 @@
+model Client {
+  id            String    @id @default(uuid(7))
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  name          String
+  email         String    @unique
+  profilePhoto  String?
+  contactNumber String?
+  address       String?
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  consultations Consultation[]
+  reviews       Review[]
+  documents     CaseDocument[]
+
+  @@index([isDeleted])
+}

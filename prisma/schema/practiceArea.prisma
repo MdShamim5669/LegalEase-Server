@@ -1,0 +1,10 @@
+model PracticeArea {
+  id        String    @id @default(uuid(7))
+  title     String    @unique
+  icon      String?
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  lawyers LawyerPracticeArea[]
+}

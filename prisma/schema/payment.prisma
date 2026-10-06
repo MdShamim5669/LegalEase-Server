@@ -1,0 +1,25 @@
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+model Payment {
+  id                 String        @id @default(uuid(7))
+  consultationId     String        @unique
+  consultation       Consultation  @relation(fields: [consultationId], references: [id])
+  amount             Int // integer BDT taka, snapshot of fee at booking
+  status             PaymentStatus @default(UNPAID)
+  transactionId      String        @unique
+  stripeEventId      String?       @unique
+  stripeSessionId    String?       @unique
+  paymentGatewayData Json?
+  refundId           String?
+  refundedAmount     Int           @default(0)
+  paidAt             DateTime?
+  refundedAt         DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}

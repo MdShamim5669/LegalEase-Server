@@ -1,0 +1,14 @@
+model LawyerSchedule {
+  lawyerId   String
+  scheduleId String
+  isBooked   Boolean  @default(false)
+  lawyer     Lawyer   @relation(fields: [lawyerId], references: [id])
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  createdAt  DateTime @default(now())
+
+  consultations Consultation[]
+
+  @@id([lawyerId, scheduleId])
+  @@index([scheduleId])
+  @@index([lawyerId, isBooked])
+}

@@ -1,0 +1,10 @@
+model LegalAdvice {
+  id             String       @id @default(uuid(7))
+  consultationId String       @unique
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  summary        String
+  nextSteps      String?
+  followUpDate   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}

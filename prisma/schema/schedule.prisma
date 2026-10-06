@@ -1,0 +1,12 @@
+model Schedule {
+  id            String   @id @default(uuid(7))
+  startDateTime DateTime // UTC
+  endDateTime   DateTime // UTC
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  lawyerSchedules LawyerSchedule[]
+
+  @@unique([startDateTime, endDateTime])
+  @@index([startDateTime])
+}

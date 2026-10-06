@@ -1,0 +1,15 @@
+model CaseDocument {
+  id             String       @id @default(uuid(7))
+  consultationId String
+  clientId       String
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  client         Client       @relation(fields: [clientId], references: [id])
+  title          String
+  fileUrl        String
+  publicId       String // Cloudinary id for cleanup
+  sizeBytes      Int
+  createdAt      DateTime     @default(now())
+
+  @@index([consultationId])
+  @@index([clientId])
+}

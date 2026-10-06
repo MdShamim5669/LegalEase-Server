@@ -1,0 +1,9 @@
+model LawyerPracticeArea {
+  lawyerId       String
+  practiceAreaId String
+  lawyer         Lawyer       @relation(fields: [lawyerId], references: [id])
+  practiceArea   PracticeArea @relation(fields: [practiceAreaId], references: [id])
+
+  @@id([lawyerId, practiceAreaId])
+  @@index([practiceAreaId])
+}

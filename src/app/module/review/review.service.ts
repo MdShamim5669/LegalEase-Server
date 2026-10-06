@@ -3,6 +3,7 @@ import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
 import { IAuthUser } from "../../interfaces/auth.interface";
 import { ConsultationStatus } from "../../../generated/prisma/enums.js";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 export const createReview = async (
   clientUser: IAuthUser,
@@ -80,35 +81,21 @@ export const getAllReviews = async (query: {
   limit?: number | string;
   lawyerId?: string;
   isHidden?: boolean | string;
+  searchTerm?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const where: any = {};
-  if (query.lawyerId) where.lawyerId = query.lawyerId;
-  if (query.isHidden !== undefined) {
-    where.isHidden = query.isHidden === "true" || query.isHidden === true;
-  }
-
-  const [data, total] = await Promise.all([
-    prisma.review.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        client: { select: { name: true, profilePhoto: true } },
-        lawyer: { select: { name: true } },
-      },
-    }),
-    prisma.review.count({ where }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  const queryBuilder = new QueryBuilder(prisma.review, query);
+  return await queryBuilder
+    .search(["comment"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      client: { select: { name: true, profilePhoto: true } },
+      lawyer: { select: { name: true } },
+    })
+    .execute();
 };
 
 export const updateVisibility = async (

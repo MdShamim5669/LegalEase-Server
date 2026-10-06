@@ -1,6 +1,7 @@
 import status from "http-status";
 import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 export const createSchedules = async (
   slots: Array<{ startDateTime: string | Date; endDateTime: string | Date }>
@@ -41,30 +42,31 @@ export const getAllSchedules = async (query: {
   page?: number | string;
   limit?: number | string;
   startDate?: string;
+  endDate?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
+  const queryBuilder = new QueryBuilder(prisma.schedule, query);
+  queryBuilder
+    .where({ isDeleted: false })
+    .filter(["startDate", "endDate"]);
 
-  const where: any = { isDeleted: false };
   if (query.startDate) {
-    where.startDateTime = { gte: new Date(query.startDate) };
+    queryBuilder.where({
+      startDateTime: { gte: new Date(query.startDate) },
+    });
   }
 
-  const [data, total] = await Promise.all([
-    prisma.schedule.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { startDateTime: "asc" },
-    }),
-    prisma.schedule.count({ where }),
-  ]);
+  if (query.endDate) {
+    queryBuilder.where({
+      endDateTime: { lte: new Date(query.endDate) },
+    });
+  }
 
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  return await queryBuilder
+    .sort({ field: "startDateTime", order: "asc" })
+    .paginate()
+    .execute();
 };
 
 export const getScheduleById = async (id: string) => {

@@ -3,6 +3,7 @@ import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
 import { IAuthUser } from "../../interfaces/auth.interface";
 import { Role } from "../../../generated/prisma/enums.js";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 export const getVerifiedLawyers = async (query: {
   page?: number | string;
@@ -14,67 +15,51 @@ export const getVerifiedLawyers = async (query: {
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const where: any = {
-    isDeleted: false,
-    isVerified: true,
-  };
-
-  if (query.searchTerm) {
-    where.OR = [
-      { name: { contains: query.searchTerm, mode: "insensitive" } },
-      { bio: { contains: query.searchTerm, mode: "insensitive" } },
-      { chamberAddress: { contains: query.searchTerm, mode: "insensitive" } },
-    ];
+  let sortField = "createdAt";
+  let defaultOrder: "asc" | "desc" = "desc";
+  if (query.sortBy === "rating") {
+    sortField = "averageRating";
+  } else if (query.sortBy === "fee") {
+    sortField = "consultationFee";
+    defaultOrder = "asc";
+  } else if (query.sortBy === "experience") {
+    sortField = "experience";
   }
+
+  const queryBuilder = new QueryBuilder(prisma.lawyer, {
+    ...query,
+    sortBy: sortField,
+    sortOrder: query.sortOrder || defaultOrder,
+  });
+
+  queryBuilder
+    .where({ isDeleted: false, isVerified: true })
+    .search(["name", "bio", "chamberAddress"])
+    .filter(["practiceAreaId", "maxFee"]);
 
   if (query.practiceAreaId) {
-    where.practiceAreas = {
-      some: { practiceAreaId: query.practiceAreaId },
-    };
-  }
-
-  if (query.gender) {
-    where.gender = query.gender;
+    queryBuilder.where({
+      practiceAreas: {
+        some: { practiceAreaId: query.practiceAreaId },
+      },
+    });
   }
 
   if (query.maxFee) {
-    where.consultationFee = { lte: Number(query.maxFee) };
+    queryBuilder.where({
+      consultationFee: { lte: Number(query.maxFee) },
+    });
   }
 
-  const orderBy: any = {};
-  if (query.sortBy === "rating") {
-    orderBy.averageRating = query.sortOrder || "desc";
-  } else if (query.sortBy === "fee") {
-    orderBy.consultationFee = query.sortOrder || "asc";
-  } else if (query.sortBy === "experience") {
-    orderBy.experience = query.sortOrder || "desc";
-  } else {
-    orderBy.createdAt = "desc";
-  }
-
-  const [data, total] = await Promise.all([
-    prisma.lawyer.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy,
-      include: {
-        practiceAreas: {
-          include: { practiceArea: true },
-        },
+  return await queryBuilder
+    .sort({ field: sortField, order: query.sortOrder || defaultOrder })
+    .paginate()
+    .include({
+      practiceAreas: {
+        include: { practiceArea: true },
       },
-    }),
-    prisma.lawyer.count({ where }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+    })
+    .execute();
 };
 
 export const getTopLawyers = async () => {
@@ -94,34 +79,20 @@ export const getAdminLawyerList = async (query: {
   page?: number | string;
   limit?: number | string;
   isVerified?: string | boolean;
+  searchTerm?: string;
 }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const where: any = { isDeleted: false };
-  if (query.isVerified !== undefined) {
-    where.isVerified = query.isVerified === "true" || query.isVerified === true;
-  }
-
-  const [data, total] = await Promise.all([
-    prisma.lawyer.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { id: true, email: true, status: true, createdAt: true } },
-        practiceAreas: { include: { practiceArea: true } },
-      },
-    }),
-    prisma.lawyer.count({ where }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  const queryBuilder = new QueryBuilder(prisma.lawyer, query);
+  return await queryBuilder
+    .where({ isDeleted: false })
+    .search(["name", "email", "contactNumber", "barCouncilNo"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      user: { select: { id: true, email: true, status: true, createdAt: true } },
+      practiceAreas: { include: { practiceArea: true } },
+    })
+    .execute();
 };
 
 export const getLawyerById = async (id: string, isInternalAdmin: boolean = false) => {

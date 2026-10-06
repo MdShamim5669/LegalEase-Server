@@ -2,30 +2,22 @@ import status from "http-status";
 import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
 
-export const getAllAdmins = async (query: { page?: number | string; limit?: number | string }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
-  const [data, total] = await Promise.all([
-    prisma.admin.findMany({
-      where: { isDeleted: false },
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: {
-          select: { id: true, email: true, role: true, status: true, createdAt: true },
-        },
+export const getAllAdmins = async (query: { page?: number | string; limit?: number | string; searchTerm?: string }) => {
+  const queryBuilder = new QueryBuilder(prisma.admin, query);
+  return await queryBuilder
+    .where({ isDeleted: false })
+    .search(["name", "email", "contactNumber"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      user: {
+        select: { id: true, email: true, role: true, status: true, createdAt: true },
       },
-    }),
-    prisma.admin.count({ where: { isDeleted: false } }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+    })
+    .execute();
 };
 
 export const getAdminById = async (id: string) => {

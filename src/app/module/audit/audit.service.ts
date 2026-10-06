@@ -1,5 +1,6 @@
 import prisma from "../../lib/prisma";
 import { ICreateAuditLog, IAuditLogQueryFilters } from "./audit.interface";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 export const logAction = async (payload: ICreateAuditLog) => {
   return await prisma.auditLog.create({
@@ -16,29 +17,13 @@ export const logAction = async (payload: ICreateAuditLog) => {
 };
 
 export const getAuditLogs = async (query: IAuditLogQueryFilters) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const where: any = {};
-  if (query.action) where.action = query.action;
-  if (query.entity) where.entity = query.entity;
-  if (query.actorId) where.actorId = query.actorId;
-
-  const [data, total] = await Promise.all([
-    prisma.auditLog.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.auditLog.count({ where }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  const queryBuilder = new QueryBuilder(prisma.auditLog, query);
+  return await queryBuilder
+    .search(["action", "entity", "reason"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .execute();
 };
 
 export const AuditService = {

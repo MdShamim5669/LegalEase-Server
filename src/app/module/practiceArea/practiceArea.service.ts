@@ -1,8 +1,23 @@
 import status from "http-status";
 import prisma from "../../lib/prisma";
 import { AppError } from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
-export const getAllPracticeAreas = async () => {
+export const getAllPracticeAreas = async (query?: {
+  searchTerm?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}) => {
+  if (query && (query.searchTerm || query.sortBy)) {
+    const qb = new QueryBuilder(prisma.practiceArea, query);
+    const result = await qb
+      .where({ isDeleted: false })
+      .search(["title"])
+      .sort({ field: "title", order: "asc" })
+      .execute();
+    return result.data;
+  }
+
   return await prisma.practiceArea.findMany({
     where: { isDeleted: false },
     orderBy: { title: "asc" },

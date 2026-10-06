@@ -4,8 +4,8 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { PracticeAreaService } from "./practiceArea.service";
 
-export const getAllPracticeAreas = catchAsync(async (_req: Request, res: Response) => {
-  const result = await PracticeAreaService.getAllPracticeAreas();
+export const getAllPracticeAreas = catchAsync(async (req: Request, res: Response) => {
+  const result = await PracticeAreaService.getAllPracticeAreas(req.query);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,

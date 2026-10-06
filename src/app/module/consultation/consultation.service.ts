@@ -4,6 +4,7 @@ import { AppError } from "../../errorHelpers/AppError";
 import { IAuthUser } from "../../interfaces/auth.interface";
 import { Role, ConsultationType, ConsultationStatus } from "../../../generated/prisma/enums.js";
 import { getPaymentGateway } from "../../gateway/gateway.factory";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 export const LEGAL_DISCLAIMER =
   "This is preliminary consultation, not formal legal representation.";
@@ -208,64 +209,66 @@ export const initiatePayment = async (
   };
 };
 
-export const getMyConsultations = async (user: IAuthUser, query: { page?: number | string; limit?: number | string }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
+export const getMyConsultations = async (
+  user: IAuthUser,
+  query: {
+    page?: number | string;
+    limit?: number | string;
+    status?: string;
+    paymentStatus?: string;
+    searchTerm?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+  }
+) => {
   const where: any = {};
   if (user.role === Role.CLIENT) {
     const client = await prisma.client.findFirst({ where: { userId: user.userId, isDeleted: false } });
-    if (!client) return { meta: { page, limit, total: 0, totalPages: 0 }, data: [] };
+    if (!client) return { meta: { page: Number(query.page || 1), limit: Number(query.limit || 10), total: 0, totalPages: 0 }, data: [] };
     where.clientId = client.id;
   } else if (user.role === Role.LAWYER) {
     const lawyer = await prisma.lawyer.findFirst({ where: { userId: user.userId, isDeleted: false } });
-    if (!lawyer) return { meta: { page, limit, total: 0, totalPages: 0 }, data: [] };
+    if (!lawyer) return { meta: { page: Number(query.page || 1), limit: Number(query.limit || 10), total: 0, totalPages: 0 }, data: [] };
     where.lawyerId = lawyer.id;
   }
 
-  const [data, total] = await Promise.all([
-    prisma.consultation.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        client: { select: { name: true, email: true, profilePhoto: true } },
-        lawyer: { select: { name: true, email: true, profilePhoto: true, barCouncilNo: true } },
-        payment: true,
-      },
-    }),
-    prisma.consultation.count({ where }),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  const queryBuilder = new QueryBuilder(prisma.consultation, query);
+  return await queryBuilder
+    .where(where)
+    .search(["topic"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      client: { select: { name: true, email: true, profilePhoto: true } },
+      lawyer: { select: { name: true, email: true, profilePhoto: true, barCouncilNo: true } },
+      payment: true,
+    })
+    .execute();
 };
 
-export const getAllConsultations = async (query: { page?: number | string; limit?: number | string }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const [data, total] = await Promise.all([
-    prisma.consultation.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      include: {
-        payment: { select: { id: true, amount: true, status: true, transactionId: true } },
-      },
-    }),
-    prisma.consultation.count(),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+export const getAllConsultations = async (query: {
+  page?: number | string;
+  limit?: number | string;
+  status?: string;
+  paymentStatus?: string;
+  type?: string;
+  searchTerm?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}) => {
+  const queryBuilder = new QueryBuilder(prisma.consultation, query);
+  return await queryBuilder
+    .search(["topic"])
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      client: { select: { name: true, email: true } },
+      lawyer: { select: { name: true, email: true } },
+      payment: { select: { id: true, amount: true, status: true, transactionId: true } },
+    })
+    .execute();
 };
 
 export const getConsultationById = async (user: IAuthUser, id: string) => {

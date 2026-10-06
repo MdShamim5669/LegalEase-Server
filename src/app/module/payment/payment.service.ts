@@ -6,6 +6,7 @@ import { stripeGateway } from "../../gateway/StripeGateway";
 import { sslCommerzGateway } from "../../gateway/SSLCommerzGateway";
 import { getPaymentGateway } from "../../gateway/gateway.factory";
 import { sendEmail } from "../../utils/email";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 import env from "../../config/env";
 
 export const handleWebhook = async (payload: string | Buffer, signature: string) => {
@@ -234,23 +235,23 @@ export const refundPayment = async (
 };
 
 export const getAllPayments = async (query: { page?: number | string; limit?: number | string }) => {
-  const page = Math.max(Number(query.page || 1), 1);
-  const limit = Math.min(Math.max(Number(query.limit || 10), 1), 100);
-  const skip = (page - 1) * limit;
-
-  const [data, total] = await Promise.all([
-    prisma.payment.findMany({
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.payment.count(),
-  ]);
-
-  return {
-    meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    data,
-  };
+  const queryBuilder = new QueryBuilder(prisma.payment, query);
+  return await queryBuilder
+    .filter()
+    .sort({ field: "createdAt", order: "desc" })
+    .paginate()
+    .include({
+      consultation: {
+        select: {
+          id: true,
+          status: true,
+          topic: true,
+          client: { select: { id: true, name: true, email: true } },
+          lawyer: { select: { id: true, name: true, email: true } },
+        },
+      },
+    })
+    .execute();
 };
 
 export const PaymentService = {

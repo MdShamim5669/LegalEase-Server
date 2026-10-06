@@ -1,6 +1,8 @@
 import express from "express";
 import { LawyerScheduleController } from "./lawyerSchedule.controller";
+import { LawyerScheduleValidation } from "./lawyerSchedule.validation";
 import { checkAuth } from "../../middleware/checkAuth";
+import { validateRequest } from "../../middleware/validateRequest";
 import { Role } from "../../../generated/prisma/enums.js";
 
 const router = express.Router();
@@ -11,6 +13,7 @@ const router = express.Router();
 router.post(
   "/",
   checkAuth(Role.LAWYER),
+  validateRequest(LawyerScheduleValidation.pickSlotsSchema),
   LawyerScheduleController.pickSlots
 );
 
@@ -23,6 +26,7 @@ router.get(
 router.delete(
   "/:scheduleId",
   checkAuth(Role.LAWYER),
+  validateRequest(LawyerScheduleValidation.removeSlotSchema),
   LawyerScheduleController.removeSlot
 );
 

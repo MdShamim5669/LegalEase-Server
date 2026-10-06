@@ -1,6 +1,8 @@
 import express from "express";
 import { ScheduleController } from "./schedule.controller";
+import { ScheduleValidation } from "./schedule.validation";
 import { checkAuth } from "../../middleware/checkAuth";
+import { validateRequest } from "../../middleware/validateRequest";
 import { Role } from "../../../generated/prisma/enums.js";
 
 const router = express.Router();
@@ -11,6 +13,7 @@ const router = express.Router();
 router.post(
   "/",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(ScheduleValidation.createScheduleSchema),
   ScheduleController.createSchedule
 );
 
@@ -29,6 +32,7 @@ router.get(
 router.patch(
   "/:id",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(ScheduleValidation.updateScheduleSchema),
   ScheduleController.updateSchedule
 );
 

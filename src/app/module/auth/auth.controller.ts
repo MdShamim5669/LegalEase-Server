@@ -2,71 +2,82 @@ import { Request, Response } from "express";
 import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { AuthService } from "./auth.service";
 
 export const register = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.registerClient(req.body);
   sendResponse(res, {
     httpStatusCode: status.CREATED,
     success: true,
-    message: "Registration initiated. Verification OTP sent.",
-    data: { email: req.body.email },
+    message: "Registration initiated. Verification OTP dispatched to email.",
+    data: result,
   });
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.login(req.body);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Login successful",
-    data: { user: req.body.email },
+    data: result,
   });
 });
 
-export const verifyEmail = catchAsync(async (_req: Request, res: Response) => {
+export const verifyEmail = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.verifyEmail(req.body);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Email verified successfully",
-    data: { verified: true },
+    message: "Email address verified successfully",
+    data: result,
   });
 });
 
-export const resendOtp = catchAsync(async (_req: Request, res: Response) => {
+export const resendOtp = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.resendOtp(req.body.email);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "New OTP dispatched",
-    data: null,
+    message: "Verification code dispatched successfully",
+    data: result,
   });
 });
 
-export const forgetPassword = catchAsync(async (_req: Request, res: Response) => {
+export const forgetPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.forgetPassword(req.body.email);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Password reset OTP dispatched",
-    data: null,
+    message: "Password reset instructions dispatched",
+    data: result,
   });
 });
 
-export const resetPassword = catchAsync(async (_req: Request, res: Response) => {
+export const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.resetPassword(req.body);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Password reset successfully",
-    data: null,
+    data: result,
   });
 });
 
-export const refreshToken = catchAsync(async (_req: Request, res: Response) => {
+export const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken || req.body.refreshToken;
+  const result = await AuthService.refreshToken(token);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Token refreshed successfully",
-    data: { accessToken: "refreshed_token" },
+    message: "Access token refreshed successfully",
+    data: result,
   });
 });
 
 export const logout = catchAsync(async (_req: Request, res: Response) => {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
@@ -75,21 +86,23 @@ export const logout = catchAsync(async (_req: Request, res: Response) => {
   });
 });
 
-export const changePassword = catchAsync(async (_req: Request, res: Response) => {
+export const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.changePassword(req.user!.userId, req.body);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Password changed successfully",
-    data: null,
+    data: result,
   });
 });
 
 export const getMe = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.getMe(req.user!);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Profile retrieved successfully",
-    data: req.user || null,
+    message: "Current user profile retrieved successfully",
+    data: result,
   });
 });
 
@@ -106,7 +119,7 @@ export const googleSuccess = catchAsync(async (_req: Request, res: Response) => 
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Google OAuth completed",
+    message: "Google OAuth authenticated successfully",
     data: { authenticated: true },
   });
 });
@@ -125,3 +138,5 @@ export const AuthController = {
   loginGoogle,
   googleSuccess,
 };
+
+export default AuthController;

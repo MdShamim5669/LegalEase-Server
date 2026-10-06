@@ -1,9 +1,44 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
+import { Role } from "../src/generated/prisma/enums.js";
+
+vi.mock("../src/app/lib/prisma", () => ({
+  default: {
+    lawyer: {
+      findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
+      findFirst: vi.fn().mockResolvedValue({ id: "lawyer_1", name: "Dr. Counsel" }),
+    },
+    practiceArea: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    user: {
+      count: vi.fn().mockResolvedValue(10),
+      findUnique: vi.fn().mockResolvedValue({ id: "user_1", role: Role.CLIENT }),
+    },
+    consultation: {
+      count: vi.fn().mockResolvedValue(5),
+    },
+    payment: {
+      aggregate: vi.fn().mockResolvedValue({ _sum: { amount: 50000 } }),
+    },
+    lawyerSchedule: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    client: {
+      findFirst: vi.fn().mockResolvedValue({
+        id: "client_1",
+        userId: "client_1",
+        isDeleted: false,
+        user: { role: Role.CLIENT },
+      }),
+    },
+  },
+}));
+
 import app from "../src/app";
 import { generateToken } from "../src/app/utils/jwt";
 import env from "../src/app/config/env";
-import { Role } from "../src/generated/prisma/enums.js";
 
 describe("API Route Integration & Auth Guarding", () => {
   it("GET /api/v1/health returns 200 and healthy status", async () => {

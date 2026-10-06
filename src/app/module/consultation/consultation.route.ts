@@ -1,6 +1,8 @@
 import express from "express";
 import { ConsultationController } from "./consultation.controller";
+import { ConsultationValidation } from "./consultation.validation";
 import { checkAuth } from "../../middleware/checkAuth";
+import { validateRequest } from "../../middleware/validateRequest";
 import { Role } from "../../../generated/prisma/enums.js";
 
 const router = express.Router();
@@ -11,12 +13,14 @@ const router = express.Router();
 router.post(
   "/book",
   checkAuth(Role.CLIENT),
+  validateRequest(ConsultationValidation.bookConsultationSchema),
   ConsultationController.bookConsultation
 );
 
 router.post(
   "/book-pay-later",
   checkAuth(Role.CLIENT),
+  validateRequest(ConsultationValidation.bookConsultationSchema),
   ConsultationController.bookPayLater
 );
 
@@ -47,6 +51,7 @@ router.get(
 router.patch(
   "/:id/status",
   checkAuth(Role.LAWYER, Role.CLIENT, Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(ConsultationValidation.updateStatusSchema),
   ConsultationController.updateConsultationStatus
 );
 
@@ -54,12 +59,14 @@ router.patch(
 router.post(
   "/:id/advice",
   checkAuth(Role.LAWYER),
+  validateRequest(ConsultationValidation.createAdviceSchema),
   ConsultationController.createAdvice
 );
 
 router.patch(
   "/:id/advice",
   checkAuth(Role.LAWYER),
+  validateRequest(ConsultationValidation.updateAdviceSchema),
   ConsultationController.updateAdvice
 );
 
@@ -73,6 +80,7 @@ router.get(
 router.post(
   "/:id/documents",
   checkAuth(Role.CLIENT),
+  validateRequest(ConsultationValidation.uploadDocumentSchema),
   ConsultationController.uploadDocument
 );
 

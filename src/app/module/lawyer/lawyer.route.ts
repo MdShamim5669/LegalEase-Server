@@ -1,6 +1,8 @@
 import express from "express";
 import { LawyerController } from "./lawyer.controller";
+import { LawyerValidation } from "./lawyer.validation";
 import { checkAuth } from "../../middleware/checkAuth";
+import { validateRequest } from "../../middleware/validateRequest";
 import { Role } from "../../../generated/prisma/enums.js";
 
 const router = express.Router();
@@ -22,12 +24,14 @@ router.get("/:id/reviews", LawyerController.getLawyerReviews);
 router.patch(
   "/:id",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.LAWYER),
+  validateRequest(LawyerValidation.updateLawyerSchema),
   LawyerController.updateLawyer
 );
 
 router.patch(
   "/:id/verify",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(LawyerValidation.verifyLawyerSchema),
   LawyerController.verifyLawyer
 );
 

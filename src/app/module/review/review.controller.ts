@@ -2,32 +2,40 @@ import { Request, Response } from "express";
 import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { ReviewService } from "./review.service";
 
 export const createReview = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.createReview(req.user!, req.body);
   sendResponse(res, {
     httpStatusCode: status.CREATED,
     success: true,
     message: "Consultation review submitted successfully",
-    data: req.body,
+    data: result,
   });
 });
 
-export const getAllReviews = catchAsync(async (_req: Request, res: Response) => {
+export const getAllReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getAllReviews(req.query);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Moderation review list retrieved successfully",
-    meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-    data: [],
+    meta: result.meta,
+    data: result.data,
   });
 });
 
 export const updateVisibility = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.updateVisibility(
+    req.user!,
+    req.params.id as string,
+    req.body.isHidden
+  );
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Review visibility updated successfully",
-    data: { id: req.params.id, isVisible: req.body.isVisible },
+    data: result,
   });
 });
 
@@ -36,3 +44,5 @@ export const ReviewController = {
   getAllReviews,
   updateVisibility,
 };
+
+export default ReviewController;

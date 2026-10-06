@@ -2,28 +2,36 @@ import { Request, Response } from "express";
 import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
+import { PaymentService } from "./payment.service";
 
-export const handleWebhook = catchAsync(async (_req: Request, res: Response) => {
-  // Conforms to PRD Section 4.4 & 6: webhook event acknowledgement
-  res.status(status.OK).json({ received: true });
+export const handleWebhook = catchAsync(async (req: Request, res: Response) => {
+  const signature = (req.headers["stripe-signature"] as string) || "";
+  const result = await PaymentService.handleWebhook(req.body, signature);
+  res.status(status.OK).json(result);
 });
 
 export const refundPayment = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.refundPayment(
+    req.user!,
+    req.params.id as string,
+    req.body?.reason
+  );
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Refund processed successfully",
-    data: { paymentId: req.params.id, amount: req.body.amount },
+    data: result,
   });
 });
 
-export const getAllPayments = catchAsync(async (_req: Request, res: Response) => {
+export const getAllPayments = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.getAllPayments(req.query);
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Payments metadata retrieved successfully",
-    meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
-    data: [],
+    meta: result.meta,
+    data: result.data,
   });
 });
 
@@ -32,3 +40,5 @@ export const PaymentController = {
   refundPayment,
   getAllPayments,
 };
+
+export default PaymentController;

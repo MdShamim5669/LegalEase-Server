@@ -22,14 +22,12 @@ describe("Dashboard Service Unit Tests", () => {
   });
 
   describe("getClientDashboard", () => {
-    it("returns empty structure when client profile is not found", async () => {
+    it("throws 404 if client profile is not found", async () => {
       vi.mocked(prisma.client.findFirst).mockResolvedValue(null);
 
-      const res = await getClientDashboard("u_missing");
-      expect(res).toEqual({
-        upcomingConsultations: [],
-        pastConsultations: [],
-        totalBooked: 0,
+      await expect(getClientDashboard("u_missing")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "CLIENT_NOT_FOUND",
       });
     });
 
@@ -48,14 +46,12 @@ describe("Dashboard Service Unit Tests", () => {
   });
 
   describe("getLawyerDashboard", () => {
-    it("returns empty metrics when lawyer profile is missing", async () => {
+    it("throws 404 if lawyer profile is missing", async () => {
       vi.mocked(prisma.lawyer.findFirst).mockResolvedValue(null);
 
-      const res = await getLawyerDashboard("u_missing");
-      expect(res).toEqual({
-        todayConsultations: [],
-        upcomingConsultations: [],
-        totalEarned: 0,
+      await expect(getLawyerDashboard("u_missing")).rejects.toMatchObject({
+        statusCode: 404,
+        code: "LAWYER_NOT_FOUND",
       });
     });
 

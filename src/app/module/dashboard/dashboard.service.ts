@@ -1,4 +1,6 @@
+import status from "http-status";
 import prisma from "../../lib/prisma";
+import { AppError } from "../../errorHelpers/AppError";
 
 export const getClientDashboard = async (userId: string) => {
   const client = await prisma.client.findFirst({
@@ -6,7 +8,7 @@ export const getClientDashboard = async (userId: string) => {
   });
 
   if (!client) {
-    return { upcomingConsultations: [], pastConsultations: [], totalBooked: 0 };
+    throw new AppError(status.NOT_FOUND, "Client profile not found", "CLIENT_NOT_FOUND");
   }
 
   const [upcoming, past, totalBooked] = await Promise.all([
@@ -39,7 +41,7 @@ export const getLawyerDashboard = async (userId: string) => {
   });
 
   if (!lawyer) {
-    return { todayConsultations: [], upcomingConsultations: [], totalEarned: 0 };
+    throw new AppError(status.NOT_FOUND, "Lawyer profile not found", "LAWYER_NOT_FOUND");
   }
 
   const [upcoming, completed, paidAggregate] = await Promise.all([

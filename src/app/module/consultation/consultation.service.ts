@@ -224,11 +224,15 @@ export const getMyConsultations = async (
   const where: any = {};
   if (user.role === Role.CLIENT) {
     const client = await prisma.client.findFirst({ where: { userId: user.userId, isDeleted: false } });
-    if (!client) return { meta: { page: Number(query.page || 1), limit: Number(query.limit || 10), total: 0, totalPages: 0 }, data: [] };
+    if (!client) {
+      throw new AppError(status.NOT_FOUND, "Client profile not found", "CLIENT_NOT_FOUND");
+    }
     where.clientId = client.id;
   } else if (user.role === Role.LAWYER) {
     const lawyer = await prisma.lawyer.findFirst({ where: { userId: user.userId, isDeleted: false } });
-    if (!lawyer) return { meta: { page: Number(query.page || 1), limit: Number(query.limit || 10), total: 0, totalPages: 0 }, data: [] };
+    if (!lawyer) {
+      throw new AppError(status.NOT_FOUND, "Lawyer profile not found", "LAWYER_NOT_FOUND");
+    }
     where.lawyerId = lawyer.id;
   }
 

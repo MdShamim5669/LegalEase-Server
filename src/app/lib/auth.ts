@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { toNodeHandler } from "better-auth/node";
 import prisma from "./prisma";
 import env from "../config/env";
 
@@ -22,5 +23,7 @@ export const auth = betterAuth({
   },
   trustedOrigins: [env.FRONTEND_URL, env.API_URL],
 });
+
+export const authHandler = toNodeHandler(auth);
 
 export default auth;

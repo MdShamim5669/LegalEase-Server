@@ -11,9 +11,37 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 
 const app: Application = express();
 
+// Trust proxy for reverse proxies and tunnels (e.g., localtunnel, ngrok, load balancers)
+app.set("trust proxy", 1);
+
+const allowedOrigins = [
+  env.FRONTEND_URL,
+  env.API_URL,
+  "https://dash.better-auth.com",
+];
+
 // Security and CORS
-app.use(helmet());
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".loca.lt") ||
+        origin.includes("localhost")
+      ) {
+        return callback(null, true);
+      }
+      callback(null, false);
+    },
+    credentials: true,
+  })
+);
 app.use(generalLimiter);
 
 // Parsers

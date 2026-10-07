@@ -22,7 +22,12 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days (PRD Section 8)
     updateAge: 60 * 60 * 24, // 1 day
   },
-  trustedOrigins: [env.FRONTEND_URL, env.API_URL],
+  trustedOrigins: [
+    env.FRONTEND_URL,
+    env.API_URL,
+    "https://dash.better-auth.com",
+    "https://*.loca.lt",
+  ],
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,
@@ -34,7 +39,9 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    dash(),
+    dash({
+      apiKey: env.BETTER_AUTH_API_KEY,
+    }),
   ],
 });
 

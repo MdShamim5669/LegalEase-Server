@@ -11,6 +11,8 @@ export const envSchema = z.object({
   API_URL: z.string().default("http://localhost:5000"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
+  BETTER_AUTH_API_KEY: z.string().optional(),
+  BETTER_AUTH_IDENTIFY_URL: z.string().optional(),
   ACCESS_TOKEN_SECRET: z.string().min(1, "ACCESS_TOKEN_SECRET is required"),
   ACCESS_TOKEN_EXPIRES_IN: z.string().default("1d"),
   REFRESH_TOKEN_SECRET: z.string().min(1, "REFRESH_TOKEN_SECRET is required"),

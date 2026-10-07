@@ -23,11 +23,21 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder_secret"),
   PAYMENT_CURRENCY: z.string().default("bdt"),
   PAYMENT_GATEWAY_PROVIDER: z.enum(["STRIPE", "SSLCOMMERZ", "MOCK"]).default("STRIPE"),
-  SSLCOMMERZ_STORE_ID: z.string().default("test_store_id"),
-  SSLCOMMERZ_STORE_PASS: z.string().default("test_store_pass"),
+  SSLCOMMERZ_STORE_ID: z.string().optional(),
+  SSLCOMMERZ_STORE_PASS: z.string().optional(),
   SSLCOMMERZ_IS_LIVE: z
     .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(false),
+    .optional(),
+  STORE_ID: z.string().optional(),
+  STORE_PASSWORD: z.string().optional(),
+  SSL_IS_LIVE: z
+    .preprocess((val) => val === "true" || val === true, z.boolean())
+    .optional(),
+  PAYMENT_GATEWAY_URL: z.string().optional(),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
   EMAIL_SENDER_SMTP_HOST: z.string().default("smtp.example.com"),
   EMAIL_SENDER_SMTP_PORT: z.coerce.number().default(587),
   EMAIL_SENDER_SMTP_USER: z.string().default("your_smtp_user"),
@@ -35,12 +45,16 @@ export const envSchema = z.object({
   EMAIL_SENDER_SMTP_FROM: z.string().default("LegalEase <no-reply@legalease.com>"),
   GITHUB_CLIENT_ID: z.string().default("dummy_github_client_id"),
   GITHUB_CLIENT_SECRET: z.string().default("dummy_github_client_secret"),
-  GOOGLE_CLIENT_ID: z.string().default("dummy_google_client_id"),
-  GOOGLE_CLIENT_SECRET: z.string().default("dummy_google_client_secret"),
 });
 
 export const validateEnv = (raw: Record<string, unknown>) => {
-  return envSchema.parse(raw);
+  const parsed = envSchema.parse(raw);
+  return {
+    ...parsed,
+    SSLCOMMERZ_STORE_ID: parsed.SSLCOMMERZ_STORE_ID || parsed.STORE_ID || "test_store_id",
+    SSLCOMMERZ_STORE_PASS: parsed.SSLCOMMERZ_STORE_PASS || parsed.STORE_PASSWORD || "test_store_pass",
+    SSLCOMMERZ_IS_LIVE: parsed.SSLCOMMERZ_IS_LIVE ?? parsed.SSL_IS_LIVE ?? false,
+  };
 };
 
 export const env = validateEnv(process.env);

@@ -12,7 +12,9 @@
     "lint": "eslint src --ext .ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "docker:build": "docker build -t legalease-backend .",
+    "docker:run": "docker compose up -d --build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

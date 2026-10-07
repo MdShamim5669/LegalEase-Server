@@ -74,6 +74,15 @@ export const createLawyer = async (
       });
     }
 
+    await tx.account.create({
+      data: {
+        accountId: user.id,
+        providerId: "credential",
+        userId: user.id,
+        password: temporaryPassword,
+      },
+    });
+
     return { user, lawyer };
   });
 

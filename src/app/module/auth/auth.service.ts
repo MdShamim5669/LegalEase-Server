@@ -20,9 +20,9 @@ export const registerClient = async (payload: {
     throw new AppError(status.CONFLICT, "An account with this email already exists", "EMAIL_EXISTS");
   }
 
-  // Generate 6-digit OTP (Rule 6 in security.md)
+  // Generate 6-digit OTP (Rule 6 in security.md, AUTH-3)
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
 
   const { user, client } = await prisma.$transaction(async (tx) => {
     const u = await tx.user.create({
@@ -75,7 +75,7 @@ export const registerClient = async (payload: {
       data: {
         name: payload.name,
         otp,
-        expiresInMinutes: 10,
+        expiresInMinutes: 2,
       },
     });
   } catch (_err) {
@@ -96,6 +96,18 @@ export const login = async (payload: { email: string; password?: string }) => {
 
   if (user.status === UserStatus.BLOCKED) {
     throw new AppError(status.FORBIDDEN, "Your account has been suspended", "USER_BLOCKED");
+  }
+
+  if (!payload.password) {
+    throw new AppError(status.UNAUTHORIZED, "Password is required", "INVALID_CREDENTIALS");
+  }
+
+  const account = await prisma.account.findFirst({
+    where: { userId: user.id, providerId: "credential" },
+  });
+
+  if (!account || !account.password || account.password !== payload.password) {
+    throw new AppError(status.UNAUTHORIZED, "Invalid email or credentials", "INVALID_CREDENTIALS");
   }
 
   const tokenPayload = {
@@ -159,7 +171,7 @@ export const resendOtp = async (email: string) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
 
   await prisma.verification.create({
     data: {
@@ -177,7 +189,7 @@ export const resendOtp = async (email: string) => {
       data: {
         name: user.name,
         otp,
-        expiresInMinutes: 10,
+        expiresInMinutes: 2,
       },
     });
   } catch (_err) {
@@ -198,7 +210,7 @@ export const forgetPassword = async (email: string) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
 
   await prisma.verification.create({
     data: {
@@ -216,7 +228,7 @@ export const forgetPassword = async (email: string) => {
       data: {
         name: user.name,
         otp,
-        expiresInMinutes: 10,
+        expiresInMinutes: 2,
       },
     });
   } catch (_err) {

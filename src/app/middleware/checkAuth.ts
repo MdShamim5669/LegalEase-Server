@@ -54,6 +54,14 @@ export const checkAuth = (...requiredRoles: Role[]) => {
 
       req.user = authUser;
 
+      if (authUser.status === "BLOCKED") {
+        throw new AppError(
+          status.FORBIDDEN,
+          "Your account has been suspended",
+          "USER_BLOCKED"
+        );
+      }
+
       if (requiredRoles.length > 0 && !requiredRoles.includes(authUser.role)) {
         throw new AppError(
           status.FORBIDDEN,

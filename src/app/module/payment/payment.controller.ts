@@ -6,7 +6,8 @@ import { PaymentService } from "./payment.service";
 
 export const handleWebhook = catchAsync(async (req: Request, res: Response) => {
   const signature = (req.headers["stripe-signature"] as string) || "";
-  const result = await PaymentService.handleWebhook(req.body, signature);
+  const payload = (req as any).rawBody || req.body;
+  const result = await PaymentService.handleWebhook(payload, signature);
   res.status(status.OK).json(result);
 });
 

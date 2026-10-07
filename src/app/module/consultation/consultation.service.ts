@@ -44,6 +44,15 @@ export const bookConsultation = async (
       throw new AppError(status.NOT_FOUND, "Lawyer is either unverified or not found", "LAWYER_NOT_FOUND");
     }
 
+    if (tx.schedule) {
+      const schedule = await tx.schedule.findUnique({
+        where: { id: payload.scheduleId },
+      });
+      if (schedule && (schedule.isDeleted || new Date(schedule.startDateTime) <= new Date())) {
+        throw new AppError(status.BAD_REQUEST, "Cannot book a schedule slot in the past", "SLOT_IN_PAST");
+      }
+    }
+
     const locked = await tx.lawyerSchedule.updateMany({
       where: {
         lawyerId: payload.lawyerId,
@@ -126,6 +135,15 @@ export const bookPayLater = async (
     });
     if (!lawyer) {
       throw new AppError(status.NOT_FOUND, "Lawyer is either unverified or not found", "LAWYER_NOT_FOUND");
+    }
+
+    if (tx.schedule) {
+      const schedule = await tx.schedule.findUnique({
+        where: { id: payload.scheduleId },
+      });
+      if (schedule && (schedule.isDeleted || new Date(schedule.startDateTime) <= new Date())) {
+        throw new AppError(status.BAD_REQUEST, "Cannot book a schedule slot in the past", "SLOT_IN_PAST");
+      }
     }
 
     const locked = await tx.lawyerSchedule.updateMany({
@@ -313,10 +331,32 @@ export const updateConsultationStatus = async (
 ) => {
   const consultation = await prisma.consultation.findUnique({
     where: { id },
+    include: { client: true, lawyer: true },
   });
 
   if (!consultation) {
     throw new AppError(status.NOT_FOUND, "Consultation not found", "CONSULTATION_NOT_FOUND");
+  }
+
+  // Authorization and ownership checks (Rule 34-36 in booking-and-payments.md)
+  if (user.role === Role.CLIENT) {
+    if (consultation.client && consultation.client.userId !== user.userId) {
+      throw new AppError(status.FORBIDDEN, "Access to this consultation record is restricted", "FORBIDDEN");
+    }
+    if (newStatus !== ConsultationStatus.CANCELED) {
+      throw new AppError(status.FORBIDDEN, "Clients can only cancel consultations", "FORBIDDEN");
+    }
+    if (consultation.status !== ConsultationStatus.SCHEDULED) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        "Consultations can only be canceled while in SCHEDULED status",
+        "INVALID_STATUS_TRANSITION"
+      );
+    }
+  } else if (user.role === Role.LAWYER) {
+    if (consultation.lawyer && consultation.lawyer.userId !== user.userId) {
+      throw new AppError(status.FORBIDDEN, "Only the assigned lawyer can update consultation status", "FORBIDDEN");
+    }
   }
 
   // Status Transition Validation (Rule 27 in booking-and-payments.md)
@@ -340,6 +380,7 @@ export const updateConsultationStatus = async (
           canceledAt: new Date(),
           canceledBy: user.role,
           cancelReason: reason,
+          ...(consultation.paymentStatus === "PAID" && { paymentStatus: "REFUNDED" }),
         }),
       },
     });
@@ -349,6 +390,16 @@ export const updateConsultationStatus = async (
         where: { lawyerId: consultation.lawyerId, scheduleId: consultation.scheduleId },
         data: { isBooked: false },
       });
+
+      if (consultation.paymentStatus === "PAID" && tx.payment) {
+        await tx.payment.updateMany({
+          where: { consultationId: id, status: "PAID" },
+          data: {
+            status: "REFUNDED",
+            refundedAt: new Date(),
+          },
+        });
+      }
     }
 
     return updated;

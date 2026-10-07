@@ -28,6 +28,7 @@ vi.mock("../../lib/prisma", () => ({
     account: {
       create: vi.fn(),
       upsert: vi.fn(),
+      findFirst: vi.fn(),
     },
     verification: {
       create: vi.fn(),
@@ -132,6 +133,23 @@ describe("Auth Service Unit Tests", () => {
       });
     });
 
+    it("throws 401 UNAUTHORIZED if password does not match", async () => {
+      vi.mocked(prisma.user.findFirst).mockResolvedValue({
+        id: "u_valid",
+        email: "valid@example.com",
+        status: UserStatus.ACTIVE,
+        isDeleted: false,
+      } as any);
+      vi.mocked(prisma.account.findFirst).mockResolvedValue({ password: "correct_password" } as any);
+
+      await expect(
+        login({ email: "valid@example.com", password: "wrong_password" })
+      ).rejects.toMatchObject({
+        statusCode: status.UNAUTHORIZED,
+        code: "INVALID_CREDENTIALS",
+      });
+    });
+
     it("returns user payload and tokens on successful authentication", async () => {
       const mockUser = {
         id: "u_valid",
@@ -145,6 +163,7 @@ describe("Auth Service Unit Tests", () => {
       };
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.account.findFirst).mockResolvedValue({ password: "pwd" } as any);
       vi.mocked(jwtUtil.generateToken)
         .mockReturnValueOnce("mock_access_token")
         .mockReturnValueOnce("mock_refresh_token");

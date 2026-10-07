@@ -3,6 +3,7 @@ import status from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { AuthService } from "./auth.service";
+import env from "../../config/env";
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerClient(req.body);
@@ -16,6 +17,16 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 
 export const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.login(req.body);
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+    sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  };
+
+  res.cookie("accessToken", result.accessToken, cookieOptions);
+  res.cookie("refreshToken", result.refreshToken, cookieOptions);
+
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,

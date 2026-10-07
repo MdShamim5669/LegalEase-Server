@@ -177,9 +177,34 @@ export const updateLawyer = async (
     throw new AppError(status.FORBIDDEN, "You can only update your own lawyer profile", "FORBIDDEN");
   }
 
+  const { practiceAreaIds, ...lawyerData } = payload;
+
+  if (practiceAreaIds && Array.isArray(practiceAreaIds)) {
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.lawyer.update({
+        where: { id: lawyerId },
+        data: lawyerData,
+      });
+
+      await tx.lawyerPracticeArea.deleteMany({
+        where: { lawyerId },
+      });
+      if (practiceAreaIds.length > 0) {
+        await tx.lawyerPracticeArea.createMany({
+          data: practiceAreaIds.map((paId: string) => ({
+            lawyerId,
+            practiceAreaId: paId,
+          })),
+        });
+      }
+
+      return updated;
+    });
+  }
+
   return await prisma.lawyer.update({
     where: { id: lawyerId },
-    data: payload,
+    data: lawyerData,
   });
 };
 

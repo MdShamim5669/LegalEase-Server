@@ -3,6 +3,7 @@ import { AuthController } from "./auth.controller";
 import { AuthValidation } from "./auth.validation";
 import { checkAuth } from "../../middleware/checkAuth";
 import { validateRequest } from "../../middleware/validateRequest";
+import { authLimiter, otpLimiter } from "../../middleware/rateLimit";
 
 const router = express.Router();
 
@@ -11,36 +12,42 @@ const router = express.Router();
  */
 router.post(
   "/register",
+  authLimiter,
   validateRequest(AuthValidation.registerSchema),
   AuthController.register
 );
 
 router.post(
   "/login",
+  authLimiter,
   validateRequest(AuthValidation.loginSchema),
   AuthController.login
 );
 
 router.post(
   "/verify-email",
+  otpLimiter,
   validateRequest(AuthValidation.verifyEmailSchema),
   AuthController.verifyEmail
 );
 
 router.post(
   "/resend-otp",
+  otpLimiter,
   validateRequest(AuthValidation.resendOtpSchema),
   AuthController.resendOtp
 );
 
 router.post(
   "/forget-password",
+  otpLimiter,
   validateRequest(AuthValidation.forgetPasswordSchema),
   AuthController.forgetPassword
 );
 
 router.post(
   "/reset-password",
+  otpLimiter,
   validateRequest(AuthValidation.resetPasswordSchema),
   AuthController.resetPassword
 );

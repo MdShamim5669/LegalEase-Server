@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: legalease-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: API_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_API_KEY
+        sync: false
+      - key: BETTER_AUTH_IDENTIFY_URL
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRES_IN
+        value: 1d
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
+      - key: PAYMENT_GATEWAY_PROVIDER
+        value: STRIPE
+      - key: PAYMENT_CURRENCY
+        value: bdt
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SSLCOMMERZ_STORE_ID
+        sync: false
+      - key: SSLCOMMERZ_STORE_PASS
+        sync: false
+      - key: SSLCOMMERZ_IS_LIVE
+        value: "false"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

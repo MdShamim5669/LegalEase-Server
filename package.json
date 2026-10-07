@@ -1,6 +1,15 @@
 {
   "name": "legalease-backend",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
+    ]
+  },
   "description": "LegalEase Backend REST API",
   "main": "dist/server.js",
   "scripts": {

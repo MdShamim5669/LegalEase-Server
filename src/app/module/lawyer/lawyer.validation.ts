@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const updateLawyerSchema = z.object({
   params: z.object({
-    id: z.string({ required_error: "Lawyer ID is required" }),
+    id: z.string({ error: "Lawyer ID is required" }),
   }),
   body: z.object({
     name: z.string().min(2).optional(),
@@ -19,10 +19,10 @@ const updateLawyerSchema = z.object({
 
 const verifyLawyerSchema = z.object({
   params: z.object({
-    id: z.string({ required_error: "Lawyer ID is required" }),
+    id: z.string({ error: "Lawyer ID is required" }),
   }),
   body: z.object({
-    isVerified: z.boolean({ required_error: "isVerified status is required" }),
+    isVerified: z.boolean({ error: "isVerified status is required" }),
     verificationNote: z.string().optional(),
   }),
 });

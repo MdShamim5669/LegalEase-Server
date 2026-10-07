@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const updateAdminSchema = z.object({
   params: z.object({
-    id: z.string({ required_error: "Admin ID is required" }),
+    id: z.string({ error: "Admin ID is required" }),
   }),
   body: z.object({
     name: z.string().min(2).optional(),

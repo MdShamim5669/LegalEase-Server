@@ -65,6 +65,8 @@ router.post(
 router.get("/me", checkAuth(), AuthController.getMe);
 router.get("/login/google", AuthController.loginGoogle);
 router.get("/google/success", AuthController.googleSuccess);
+router.get("/login/github", AuthController.loginGithub);
+router.get("/github/success", AuthController.githubSuccess);
 
 export const AuthRoutes = router;
 export default AuthRoutes;

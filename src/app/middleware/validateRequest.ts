@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodEffects } from "zod";
+import { ZodType } from "zod";
 
 /**
  * Validates request payload against a Zod schema.
@@ -7,7 +7,7 @@ import { AnyZodObject, ZodEffects } from "zod";
  * Enforces Architectural Rule 3: return next(error) on failure.
  */
 export const validateRequest = (
-  schema: AnyZodObject | ZodEffects<any>
+  schema: ZodType<any, any, any>
 ) => {
   return async (
     req: Request,
@@ -23,7 +23,14 @@ export const validateRequest = (
       });
 
       if (parsed.body !== undefined) req.body = parsed.body;
-      if (parsed.query !== undefined) req.query = parsed.query;
+      if (parsed.query !== undefined) {
+        Object.defineProperty(req, "query", {
+          value: parsed.query,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      }
       if (parsed.params !== undefined) req.params = parsed.params;
 
       return next();

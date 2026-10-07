@@ -31,6 +31,10 @@ export const envSchema = z.object({
   EMAIL_SENDER_SMTP_USER: z.string().default("your_smtp_user"),
   EMAIL_SENDER_SMTP_PASS: z.string().default("your_smtp_password"),
   EMAIL_SENDER_SMTP_FROM: z.string().default("LegalEase <no-reply@legalease.com>"),
+  GITHUB_CLIENT_ID: z.string().default("dummy_github_client_id"),
+  GITHUB_CLIENT_SECRET: z.string().default("dummy_github_client_secret"),
+  GOOGLE_CLIENT_ID: z.string().default("dummy_google_client_id"),
+  GOOGLE_CLIENT_SECRET: z.string().default("dummy_google_client_secret"),
 });
 
 export const validateEnv = (raw: Record<string, unknown>) => {

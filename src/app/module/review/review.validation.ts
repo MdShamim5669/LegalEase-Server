@@ -2,9 +2,9 @@ import { z } from "zod";
 
 const createReviewSchema = z.object({
   body: z.object({
-    consultationId: z.string({ required_error: "Consultation ID is required" }),
+    consultationId: z.string({ error: "Consultation ID is required" }),
     rating: z
-      .number({ required_error: "Rating is required" })
+      .number({ error: "Rating is required" })
       .int()
       .min(1, "Rating must be at least 1")
       .max(5, "Rating cannot exceed 5"),
@@ -14,10 +14,10 @@ const createReviewSchema = z.object({
 
 const updateVisibilitySchema = z.object({
   params: z.object({
-    id: z.string({ required_error: "Review ID is required" }),
+    id: z.string({ error: "Review ID is required" }),
   }),
   body: z.object({
-    isHidden: z.boolean({ required_error: "isHidden boolean flag is required" }),
+    isHidden: z.boolean({ error: "isHidden boolean flag is required" }),
   }),
 });
 

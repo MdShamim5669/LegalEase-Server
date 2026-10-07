@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const refundPaymentSchema = z.object({
   params: z.object({
-    id: z.string({ required_error: "Payment ID is required" }),
+    id: z.string({ error: "Payment ID is required" }),
   }),
   body: z
     .object({

@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import env from "./app/config/env";
+import { authHandler } from "./app/lib/auth";
 import { generalLimiter } from "./app/middleware/rateLimit";
 import { RootRouter } from "./app/routes";
 import { notFound } from "./app/middleware/notFound";
@@ -26,7 +27,10 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Better Auth API Route (PRD Section 1.7 & Neon Auth)
+app.use("/api/auth", authHandler);
+
+// Application API Routes
 app.use("/api/v1", RootRouter);
 
 // 404 Handler (BEFORE error handler)

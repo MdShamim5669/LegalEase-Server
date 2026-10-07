@@ -135,6 +135,24 @@ export const googleSuccess = catchAsync(async (_req: Request, res: Response) => 
   });
 });
 
+export const loginGithub = catchAsync(async (_req: Request, res: Response) => {
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "GitHub OAuth initiated",
+    data: { url: "/api/v1/auth/github/success" },
+  });
+});
+
+export const githubSuccess = catchAsync(async (_req: Request, res: Response) => {
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "GitHub OAuth authenticated successfully",
+    data: { authenticated: true },
+  });
+});
+
 export const AuthController = {
   register,
   login,
@@ -148,6 +166,8 @@ export const AuthController = {
   getMe,
   loginGoogle,
   googleSuccess,
+  loginGithub,
+  githubSuccess,
 };
 
 export default AuthController;

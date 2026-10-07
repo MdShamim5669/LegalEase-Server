@@ -61,6 +61,20 @@ app.use("/api/auth", authHandler);
 // Application API Routes
 app.use("/api/v1", RootRouter);
 
+// Root Welcome Route
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Welcome to LegalEase Backend REST API",
+    version: "1.0.0",
+    endpoints: {
+      health: "/api/v1/health",
+      auth: "/api/auth",
+      api: "/api/v1",
+    },
+  });
+});
+
 // 404 Handler (BEFORE error handler)
 app.use(notFound);
 
